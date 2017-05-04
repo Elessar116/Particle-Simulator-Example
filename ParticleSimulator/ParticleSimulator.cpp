@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
+#include <string>
 
 #include "Object.h"
 #include "Particle.h"
@@ -47,7 +48,7 @@ float flatfield[3] = { 0, -0.0075f, 0 };
 
 int timer = 0;
 int fieldTimer = 0;
-int parNum = 25000;
+int parNum = 100;
 bool field1b = true;
 bool field2b = false;
 bool field3b = false;
@@ -58,8 +59,12 @@ bool VeloColor = true;
 Field spField[5];
 Source s1(parNum, 0.5, veloVec, sourcePosi);
 
+bool finish_without_update = false;
+
 void hsvToRgb(float h, float* rgb){
-	float r, g, b;
+	float r = 0;
+	float g = 0;
+	float b = 0;
 	float s = 1.0f;
 	float v = 1.0f;
 
@@ -279,11 +284,14 @@ void RenderScene(void)
 	verplot(fieldPos4);
 	glEnd();
 
-
+	if (timer >= parNum)
+	{
+		timer = parNum;
+	}
 	glPointSize(2);
 	float a[3];
 	float RGB[3];
-	for (int k = 0; k < parNum; k++)
+	for (int k = 0; k < timer; k++)
 	{
 		float h = 0;
 		if (VeloColor)
@@ -302,14 +310,40 @@ void RenderScene(void)
 		verplot(a);
 		glEnd();
 	}
-
-
+	
+	
+	std::string parNumStr = std::to_string(timer);
+	glutSetWindowTitle(parNumStr.c_str());
 	
 	glPopMatrix();
 
+
+	if (finish_without_update)
+	{
+		glFinish();
+	}	
 	glutSwapBuffers();
 }
+float g_fps(void(*func)(void), int n_frame)
+{
+	clock_t start, finish;
+	int i;
+	float fps;
 
+	printf("Performing benchmark, please wait");
+	start = clock();
+	for (i = 0; i<n_frame; i++)
+	{
+		if ((i + 1) % 10 == 0)
+			printf(".");
+		func();
+	}
+	printf("done\n");
+	finish = clock();
+
+	fps = float(n_frame) / (finish - start)*CLOCKS_PER_SEC;
+	return fps;
+}
 void SpecialKeys(int key, int x, int y)
 {
 	if (key == GLUT_KEY_F1)
@@ -466,6 +500,13 @@ void SpecialKeys(int key, int x, int y)
 		VeloColor = !VeloColor;
 	}
 
+	if (key == GLUT_KEY_F6)
+	{
+		finish_without_update = true;
+		printf("%f fps\n", g_fps(RenderScene, 10));
+		finish_without_update = false;
+	}
+
 	// Refresh the Window
 	glutPostRedisplay();
 }
@@ -475,6 +516,8 @@ void empty(int){
 	glutTimerFunc(10, empty, 0);
 	fieldTimer = (fieldTimer+1)%90;
 }
+
+
 
 int _tmain(int argc, char* argv[])
 {

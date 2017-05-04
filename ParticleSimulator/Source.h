@@ -4,6 +4,13 @@
 #include "Particle.h"
 #include "Field.h"
 
+//#define useParallel
+
+//#ifdef useParallel
+//#include <ppl.h>
+//using namespace concurrency;
+//#endif
+
 #ifndef IN_VEL 
 #define IN_VEL 1
 
@@ -50,7 +57,7 @@ public:
 	~Source(){
 		if (particles)
 		{
-			delete[] particles;
+			delete[] particles;//delete crash
 		}
 	}
 
@@ -88,20 +95,23 @@ public:
 		float tempVelo[3];
 		if (timer >= n)
 		{
-			timer = timer % n;
+			//timer = timer % n;
+			timer = n;
 		}
 
 		for (int i = 0; i < 3; i++)
 		{
 			tempVelo[i] = veloVec[i];
-			float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*0.8 - 0.4;
+			float r = 0.0;
+			r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*0.8 - 0.4;
 			tempVelo[i] += r;
 		}
 
 		particles[timer].Set(position, tempVelo);
 
 		float posi[3], velo[3], acce[3];
-		for (int i = 0; i < n; i++)
+#ifndef useParallel
+		for (int i = 0; i < timer; i++)
 		{
 			particles[i].GetAccer(acce);
 			particles[i].GetVelo(velo);
@@ -113,6 +123,20 @@ public:
 			}
 			particles[i].Set(posi, velo);
 		}
+#else
+		parallel_for(0, n, [&](unsigned int i)
+		{
+			particles[i].GetAccer(acce);
+			particles[i].GetVelo(velo);
+			particles[i].GetPosi(posi);
+			for (int j = 0; j < 3; j++)
+			{
+				posi[j] = posi[j] + velo[j];
+				velo[j] = velo[j] + acce[j];
+			}
+			particles[i].Set(posi, velo);		
+		});
+#endif
 	}
 
 	void GetParPosi(int nnn, float *inPosi){
