@@ -64,7 +64,7 @@ public:
 	Source(int Num, const float inMag, const float* inVeloVec, const float* inPosi)
 		:Object(inPosi){
 		n = Num;
-		particles = new Particle[n];
+		particles = new Particle[n+100];//testing
 		float norm = inMag / sqrtf(inVeloVec[0] * inVeloVec[0] + inVeloVec[1] * inVeloVec[1] + inVeloVec[2] * inVeloVec[2]);
 		for (int i = 0; i < 3; i++)
 		{
@@ -107,7 +107,14 @@ public:
 			tempVelo[i] += r;
 		}
 
-		particles[timer].Set(position, tempVelo);
+		if (timer < n)//¨¾¤î¶W¬É
+		{
+			particles[timer].Set(position, tempVelo);
+		}
+		else
+		{
+			particles[timer-1].Set(position, tempVelo);
+		}
 
 		float posi[3], velo[3], acce[3];
 #ifndef useParallel

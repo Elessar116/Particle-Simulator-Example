@@ -48,7 +48,7 @@ float flatfield[3] = { 0, -0.0075f, 0 };
 
 int timer = 0;
 int fieldTimer = 0;
-int parNum = 100;
+int parNum = 10000;
 bool field1b = true;
 bool field2b = false;
 bool field3b = false;

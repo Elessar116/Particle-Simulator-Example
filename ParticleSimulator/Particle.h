@@ -12,7 +12,7 @@ class Particle:public Object
 {
 private:
 	float mass = 1;
-	float acce[3];
+	float acce[3] ;
 	void initacce(){
 		for (int i = 0; i < 3; i++)
 		{
@@ -20,7 +20,7 @@ private:
 		}
 	}
 public:
-	~Particle(){}
+	~Particle(){ acce[3] = {}; }
 	Particle(){ initacce(); }
 	Particle(const float M){ 
 		mass = M;
